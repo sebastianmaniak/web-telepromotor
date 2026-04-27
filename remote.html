@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teleprompter Remote</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="remote-screen" class="screen active">
+        <div class="remote-container">
+            <h1 class="remote-title">Remote Control</h1>
+            <p id="connection-status" class="connection-status disconnected">Disconnected</p>
+
+            <div id="room-entry" class="room-entry">
+                <input type="text" id="room-input" class="room-input" placeholder="Enter room code" maxlength="6">
+                <button id="join-btn" class="btn-load">Join</button>
+            </div>
+
+            <div id="remote-info" class="remote-info hidden">
+                <div class="remote-script-name" id="remote-script-name"></div>
+                <div class="remote-progress-text" id="remote-progress-text">0% read</div>
+                <div class="remote-progress-bar">
+                    <div class="remote-progress-fill" id="remote-progress-fill" style="width:0%"></div>
+                </div>
+            </div>
+
+            <button id="remote-play-pause" class="btn-play-pause hidden">&#9208;</button>
+
+            <div id="remote-speed-section" class="remote-speed-section hidden">
+                <label class="config-label">Speed</label>
+                <div class="setting-control large">
+                    <button id="remote-speed-down" class="btn-adjust large">&#8722;</button>
+                    <span class="setting-value large" id="remote-speed-value">150</span>
+                    <button id="remote-speed-up" class="btn-adjust large">+</button>
+                </div>
+                <p class="config-hint">words per minute</p>
+            </div>
+
+            <div id="remote-actions" class="remote-actions hidden">
+                <button id="remote-restart" class="btn-action">
+                    <span class="action-icon">&#10226;</span>
+                    <span class="action-label">Restart</span>
+                </button>
+                <button id="remote-font-up" class="btn-action">
+                    <span class="action-icon">A+</span>
+                    <span class="action-label">Font Size</span>
+                </button>
+                <button id="remote-flip" class="btn-action">
+                    <span class="action-icon">&#8644;</span>
+                    <span class="action-label">Flip</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { joinRoom, sendCommand } from './js/sync.js';
+
+        var params = new URLSearchParams(window.location.search);
+        var roomCode = params.get('room');
+
+        var connectionStatus = document.getElementById('connection-status');
+        var roomEntry = document.getElementById('room-entry');
+        var roomInput = document.getElementById('room-input');
+        var joinBtn = document.getElementById('join-btn');
+        var remoteInfo = document.getElementById('remote-info');
+        var remoteScriptName = document.getElementById('remote-script-name');
+        var remoteProgressText = document.getElementById('remote-progress-text');
+        var remoteProgressFill = document.getElementById('remote-progress-fill');
+        var remotePlayPause = document.getElementById('remote-play-pause');
+        var remoteSpeedSection = document.getElementById('remote-speed-section');
+        var remoteSpeedValue = document.getElementById('remote-speed-value');
+        var remoteActions = document.getElementById('remote-actions');
+
+        var currentState = {};
+
+        function showControls() {
+            remoteInfo.classList.remove('hidden');
+            remotePlayPause.classList.remove('hidden');
+            remoteSpeedSection.classList.remove('hidden');
+            remoteActions.classList.remove('hidden');
+        }
+
+        function updateUI(state) {
+            currentState = state;
+            if (state.scriptName) remoteScriptName.textContent = state.scriptName;
+            if (state.progress !== undefined) {
+                var pct = Math.round(state.progress * 100);
+                remoteProgressText.textContent = pct + '% read · ' + (state.timerDisplay || '0:00') + ' remaining';
+                remoteProgressFill.style.width = pct + '%';
+            }
+            if (state.speed) remoteSpeedValue.textContent = state.speed;
+            remotePlayPause.textContent = state.playing ? '⏸' : '▶';
+        }
+
+        function connect(code) {
+            roomEntry.classList.add('hidden');
+            connectionStatus.textContent = 'Connecting...';
+            connectionStatus.className = 'connection-status connecting';
+
+            joinRoom(code, {
+                onState: function(state) {
+                    connectionStatus.textContent = 'Connected';
+                    connectionStatus.className = 'connection-status connected';
+                    showControls();
+                    updateUI(state);
+                },
+                onDisconnect: function() {
+                    connectionStatus.textContent = 'Disconnected';
+                    connectionStatus.className = 'connection-status disconnected';
+                }
+            });
+        }
+
+        if (roomCode) {
+            connect(roomCode);
+        }
+
+        joinBtn.addEventListener('click', function() {
+            var code = roomInput.value.trim().toUpperCase();
+            if (code.length === 6) connect(code);
+        });
+
+        remotePlayPause.addEventListener('click', function() {
+            sendCommand({ type: currentState.playing ? 'pause' : 'play' });
+        });
+
+        document.getElementById('remote-speed-down').addEventListener('click', function() {
+            sendCommand({ type: 'set-speed', value: Math.max(50, (currentState.speed || 150) - 10) });
+        });
+
+        document.getElementById('remote-speed-up').addEventListener('click', function() {
+            sendCommand({ type: 'set-speed', value: Math.min(400, (currentState.speed || 150) + 10) });
+        });
+
+        document.getElementById('remote-restart').addEventListener('click', function() {
+            sendCommand({ type: 'restart' });
+        });
+
+        document.getElementById('remote-font-up').addEventListener('click', function() {
+            sendCommand({ type: 'set-font-size', value: (currentState.fontSize || 32) + 2 });
+        });
+
+        document.getElementById('remote-flip').addEventListener('click', function() {
+            sendCommand({ type: 'flip' });
+        });
+    </script>
+</body>
+</html>

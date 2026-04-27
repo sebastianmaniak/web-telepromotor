@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teleprompter</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Screen 1: Script Selection & Setup -->
+    <div id="selection-screen" class="screen active">
+        <div class="selection-container">
+            <h1 class="app-title">TELEPROMPTER</h1>
+            <p class="app-subtitle">Select a script to begin</p>
+
+            <div class="config-section">
+                <label class="config-label">GitHub Repository</label>
+                <div class="repo-input-row">
+                    <input type="text" id="repo-input" class="repo-input" placeholder="owner/repo">
+                    <button id="load-btn" class="btn-load">Load</button>
+                </div>
+                <p class="config-hint">Reads from <code>scripts/</code> folder</p>
+            </div>
+
+            <div id="script-list-section" class="script-list-section">
+                <label class="config-label">Scripts</label>
+                <div id="script-list" class="script-list">
+                    <p class="empty-message" id="empty-message">Enter a repository and tap Load</p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <label class="config-label">Settings</label>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-name">Scroll Speed</div>
+                        <div class="setting-hint">Words per minute</div>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn-adjust" data-setting="speed" data-dir="-1">&#8722;</button>
+                        <span class="setting-value" id="speed-value">150</span>
+                        <button class="btn-adjust" data-setting="speed" data-dir="1">+</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-name">Countdown Timer</div>
+                        <div class="setting-hint">Alert when time runs out</div>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn-adjust" data-setting="timer" data-dir="-1">&#8722;</button>
+                        <span class="setting-value" id="timer-value">5:00</span>
+                        <button class="btn-adjust" data-setting="timer" data-dir="1">+</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-name">Font Size</div>
+                        <div class="setting-hint">Adjust for distance</div>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn-adjust" data-setting="fontSize" data-dir="-1">A</button>
+                        <span class="setting-value" id="fontSize-value">32</span>
+                        <button class="btn-adjust" data-setting="fontSize" data-dir="1">A</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-btn" class="btn-start" disabled>&#9654; Start Teleprompter</button>
+
+            <div class="remote-section">
+                <button id="remote-link-btn" class="btn-remote">Open Remote Control</button>
+                <p class="config-hint">Share link or scan QR to control from another device</p>
+                <canvas id="qr-canvas" class="qr-canvas hidden"></canvas>
+                <p id="room-code-display" class="room-code hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 2: Teleprompter View -->
+    <div id="teleprompter-screen" class="screen">
+        <div id="timer-display" class="timer-display">0:00</div>
+        <div class="guide-line"></div>
+        <div class="fade-top"></div>
+        <div class="fade-bottom"></div>
+
+        <div id="text-container" class="text-container">
+            <div id="text-content" class="text-content"></div>
+        </div>
+
+        <div id="control-bar" class="control-bar">
+            <div class="control-left">
+                <button id="play-pause-btn" class="btn-control">&#9208;</button>
+                <button id="restart-btn" class="btn-control">&#10226;</button>
+            </div>
+            <div class="control-center">
+                <label class="speed-label">SPEED</label>
+                <input type="range" id="speed-slider" class="speed-slider" min="50" max="400" value="150">
+            </div>
+            <div class="control-right">
+                <span id="progress-display" class="progress-display">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
