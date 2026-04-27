@@ -1,11 +1,91 @@
-export function createRoom() {
-    return 'ABC123';
+var SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+var supabase = null;
+var channel = null;
+var currentRoomCode = null;
+
+async function getClient() {
+    if (supabase) return supabase;
+    var mod = await import('https://esm.sh/@supabase/supabase-js@2');
+    supabase = mod.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return supabase;
 }
 
-export function joinRoom(code, callbacks) {}
+function generateRoomCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var code = '';
+    for (var i = 0; i < 6; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return code;
+}
 
-export function sendCommand(cmd) {}
+export async function createRoom() {
+    var client = await getClient();
+    currentRoomCode = generateRoomCode();
 
-export function onState(cb) {}
+    channel = client.channel('room:' + currentRoomCode, {
+        config: { broadcast: { self: false } }
+    });
 
-export function onCommand(cb) {}
+    await channel.subscribe();
+    return currentRoomCode;
+}
+
+export async function joinRoom(code, callbacks) {
+    var client = await getClient();
+    currentRoomCode = code.toUpperCase();
+
+    channel = client.channel('room:' + currentRoomCode, {
+        config: { broadcast: { self: false } }
+    });
+
+    channel.on('broadcast', { event: 'state' }, function(payload) {
+        if (callbacks.onState) callbacks.onState(payload.payload);
+    });
+
+    var status = await channel.subscribe();
+    if (status === 'CHANNEL_ERROR' && callbacks.onDisconnect) {
+        callbacks.onDisconnect();
+    }
+
+    return channel;
+}
+
+export function broadcastState(state) {
+    if (!channel) return;
+    channel.send({
+        type: 'broadcast',
+        event: 'state',
+        payload: state
+    });
+}
+
+export function sendCommand(cmd) {
+    if (!channel) return;
+    channel.send({
+        type: 'broadcast',
+        event: 'command',
+        payload: cmd
+    });
+}
+
+export function onCommand(callback) {
+    if (!channel) return;
+    channel.on('broadcast', { event: 'command' }, function(payload) {
+        callback(payload.payload);
+    });
+}
+
+export function getRoomCode() {
+    return currentRoomCode;
+}
+
+export function disconnect() {
+    if (channel) {
+        channel.unsubscribe();
+        channel = null;
+    }
+    currentRoomCode = null;
+}
