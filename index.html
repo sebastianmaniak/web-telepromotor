@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Teleprompter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Setup screen -->
+  <div id="setup-screen" class="screen active">
+    <div class="setup-container">
+      <h1>🎬 Web Teleprompter</h1>
+      <p class="subtitle">Paste or type your script below, then start prompting.</p>
+
+      <div class="form-group">
+        <label for="script-input">Your Script</label>
+        <textarea
+          id="script-input"
+          placeholder="Paste your script here…"
+          rows="12"
+          spellcheck="true"
+        ></textarea>
+      </div>
+
+      <div class="controls-row">
+        <div class="control-group">
+          <label for="font-size-setup">Font Size</label>
+          <div class="range-row">
+            <input type="range" id="font-size-setup" min="16" max="96" value="40" step="2" />
+            <span id="font-size-label">40px</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="speed-setup">Scroll Speed</label>
+          <div class="range-row">
+            <input type="range" id="speed-setup" min="1" max="10" value="3" step="1" />
+            <span id="speed-label">3</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="mirror-setup">Mirror Text</label>
+          <label class="toggle">
+            <input type="checkbox" id="mirror-setup" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <button id="start-btn" class="btn btn-primary btn-large">▶ Start Prompting</button>
+    </div>
+  </div>
+
+  <!-- Prompter screen -->
+  <div id="prompter-screen" class="screen">
+    <div id="prompter-overlay">
+      <!-- Top bar with controls -->
+      <div id="controls-bar">
+        <div class="bar-group">
+          <button id="back-btn" class="bar-btn" title="Back to editor">✕ Exit</button>
+        </div>
+
+        <div class="bar-group bar-center">
+          <button id="play-pause-btn" class="bar-btn bar-btn-primary" title="Play / Pause (Space)">
+            ▶ Play
+          </button>
+        </div>
+
+        <div class="bar-group bar-right">
+          <label class="bar-label">Speed</label>
+          <input type="range" id="speed-prompter" min="1" max="10" value="3" step="1" />
+          <span id="speed-prompter-label">3</span>
+
+          <label class="bar-label">Size</label>
+          <input type="range" id="font-size-prompter" min="16" max="96" value="40" step="2" />
+          <span id="font-size-prompter-label">40px</span>
+
+          <button id="mirror-btn" class="bar-btn" title="Toggle mirror mode">⇔ Mirror</button>
+          <button id="fullscreen-btn" class="bar-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
+        </div>
+      </div>
+
+      <!-- Focus guides -->
+      <div class="focus-guide focus-guide-top"></div>
+      <div class="focus-guide focus-guide-bottom"></div>
+    </div>
+
+    <!-- Scrolling text -->
+    <div id="prompter-viewport">
+      <div id="prompter-text"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
