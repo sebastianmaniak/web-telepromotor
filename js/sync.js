@@ -1,5 +1,5 @@
-var SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+var SUPABASE_URL = 'https://gojrxctlwxvdvmzftlov.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvanJ4Y3Rsd3h2ZHZtemZ0bG92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTE5ODAsImV4cCI6MjA5Mjg4Nzk4MH0.mpHWNiVlUl3UgObOqeIwtxl0rEgKLWL7kt58JDScJp8';
 
 var supabase = null;
 var channel = null;
