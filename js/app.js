@@ -181,10 +181,10 @@ async function startTeleprompter() {
         onStateChange: handleStateChange
     });
 
+    showScreen('teleprompter');
+
     state.teleprompter.load(plainText, scriptName);
     state.teleprompter.setupTouchHandlers();
-
-    showScreen('teleprompter');
     state.teleprompter.play();
     resetAutoHide();
 }
