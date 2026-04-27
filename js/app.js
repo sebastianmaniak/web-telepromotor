@@ -4,6 +4,29 @@ import { Teleprompter } from './teleprompter.js';
 import { createRoom, broadcastState, onCommand } from './sync.js';
 import { renderQR } from './qr.js';
 
+var wakeLock = null;
+
+async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', function() { wakeLock = null; });
+    } catch (e) {}
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+    }
+}
+
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && state.teleprompter && state.teleprompter.playing) {
+        requestWakeLock();
+    }
+});
+
 var DEFAULTS = {
     repo: 'sebastianmaniak/web-telepromotor',
     speed: 150,
@@ -186,6 +209,7 @@ async function startTeleprompter() {
     state.teleprompter.load(plainText, scriptName);
     state.teleprompter.setupTouchHandlers();
     state.teleprompter.play();
+    requestWakeLock();
     resetAutoHide();
 }
 
@@ -199,6 +223,12 @@ function handleStateChange(tpState) {
     playPauseBtn.textContent = tpState.playing ? '⏸' : '▶';
     speedSlider.value = tpState.speed;
     progressDisplay.textContent = Math.round(tpState.progress * 100) + '%';
+
+    if (tpState.playing) {
+        if (!wakeLock) requestWakeLock();
+    } else {
+        releaseWakeLock();
+    }
 
     broadcastState(tpState);
 }
