@@ -49,6 +49,8 @@ export class Teleprompter {
 
     play() {
         if (this.playing) return;
+        this.totalHeight = this.contentEl.scrollHeight;
+        this.viewportHeight = this.container.clientHeight;
         this.playing = true;
         this.lastTimestamp = null;
         var self = this;
