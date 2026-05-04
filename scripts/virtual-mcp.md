@@ -1,6 +1,14 @@
-Quick one. You've got an AI agent. It needs tools — send email, query a database, fetch a webpage, whatever. Each of those tools lives behind something called an MCP server. The model context protocol — it's how agents talk to tools.
+[Optional cold open — use only if this video might get clipped and shared standalone. Skip if it's running inside the agentgateway series.]
 
-The question I want to answer is: how does the agent actually connect to all of them? And why does the answer matter more than it sounds like it should.
+Hey, I'm Sebastian from Solo.io.
+
+[Standard opener — start here if it's part of the series.]
+
+Quick one. You've got an AI agent helping a developer ship a feature. To do its job it needs to read the Jira ticket, pull the GitHub issue and the open PR, check the internal architecture docs, and query the team's knowledge base.
+
+Four different MCP servers. Four different connections. And the way the spec is written today, the agent is on the hook for all of it.
+
+The question I want to answer is: how should the agent actually plug into all those tools — and why does the answer matter more than it sounds like it should.
 
 
 Panel 1 — the problem
@@ -10,25 +18,34 @@ Here's the naive picture.
 
 [Draw agent box on left, label "AI agent"]
 
-The agent. On the right —
+The agent. On the right, the four servers it needs —
 
-[Draw three server boxes stacked: Email, Database, Files]
+[Draw four server boxes stacked: Jira, GitHub, Docs, Knowledge Base]
 
-— the MCP servers. Each one a separate workload. Each one with its own little set of tools.
+Each one a separate workload. Each one with its own auth, its own URL, its own little catalog of tools.
 
-To get the tools, the agent opens a connection to each server.
+To do anything useful, the agent opens a connection to each one.
 
-[Draw three lines fanning out from agent to each server]
+[Draw four lines fanning out from agent to each server]
 
-Three servers, three connections.
-
-Looks fine, right? It's not.
+Four servers, four connections. Looks fine. It isn't.
 
 [Tap the lines]
 
-Every one of those lines is its own auth handshake. Its own rate limit. Its own retry policy. Its own observability story. And — this is the part that hurts — every client that wants those tools has to know the full list of servers. The IPs, the ports, the auth, all of it.
+Every line is its own auth handshake. Its own rate limit. Its own retry. Its own observability story. And every client that wants those tools has to know the full list — the URLs, the credentials, all of it.
 
-Ship a fourth MCP server next quarter? You're touching every agent in your org. The topology of your tool fleet is now hardcoded inside every client that ships.
+But here's the part that really bites.
+
+[Circle the Jira box. Write next to it: 25 tools]
+[Circle the GitHub box. Write next to it: 51 tools]
+
+Jira's MCP server exposes twenty-five tools. GitHub's exposes fifty-one. For this workflow, the developer needs maybe two from each. But MCP picks tools at the granularity of the server, not the tool — so the agent gets the full seventy-six dumped into its context, plus everything else from docs and the KB.
+
+[Step back. Wave at the whole right side]
+
+Now the model has to pick the right tool out of a hundred-plus, half of which are noise for this task. Tool selection accuracy drops. Latency goes up. Tokens get burned.
+
+And the knowledge is scattered. Want the Python async docs? The agent has to know the exact URL. Want the runbook? Different URL. None of it is discoverable — it's tribal knowledge baked into prompts.
 
 This is the same N-by-M coupling problem that pushed every REST and gRPC shop toward an API gateway ten years ago. We've seen this movie.
 
@@ -44,43 +61,54 @@ But this time, in the middle —
 
 [Draw bigger box in center, label "agentgateway"]
 
-— we put agentgateway. The agent doesn't talk to MCP servers anymore. It talks to the gateway. One connection. One session. One endpoint —
+— we put agentgateway. The agent doesn't talk to four MCP servers anymore. It talks to the gateway. One connection. One session. One endpoint —
 
 [Write under the gateway: /mcp]
 
-Now here's the move. The gateway is configured with a Kubernetes label selector. Something like —
+[Small aside, write off to the side: If MCP is USB for AI… this is the USB hub.]
 
-[Draw dashed box on right side, label at top: matchLabels: app: mcp]
+Now here's where it gets interesting. The gateway isn't just multiplexing connections. It's curating the tool surface.
 
-Anything in the cluster carrying that label and speaking MCP gets pulled in.
+[Draw the four servers on the right, in a dashed box, label: upstream MCP servers]
 
-[Draw three servers inside the dashed box]
+Behind the gateway, we still run Jira, GitHub, docs, and the KB. But out front, the gateway publishes a virtual catalog —
 
-The gateway federates them. When the agent calls tools/list, it gets back the union — every tool from every server, prefixed by source so they don't collide. email_send, database_query, files_read. One catalog.
+[Draw five small tool boxes coming out of the gateway, label them:
+  ticket_read
+  pr_review
+  search_runbooks
+  fetch_python_docs
+  ask_kb]
 
-[Draw arrows from gateway out to each server]
+Five purpose-built tools. Not seventy-six. Each one is a thin wrapper that the gateway translates into the right upstream call — pinning URLs, injecting API keys from environment, filling in sensible defaults for the parameters the model shouldn't have to think about.
 
-Drop a fourth server in tomorrow with the right label —
+[Draw arrows from the five virtual tools, through the gateway, into the right upstream servers]
 
-[Mime adding a fourth box inside the dashed selector]
+The developer doesn't have to remember the Python docs URL. The model doesn't have to choose between fifty-one GitHub tools. The auth keys never enter the LLM context. It's all configuration, sitting in the gateway.
 
-— and clients pick up its tools on their next list call. No redeploy. No config push. No coordination.
+[Mime adding a sixth tool box]
+
+New tool next quarter? Add a few lines of config. No client redeploys. No prompt rewrites. The catalog grows in one place.
 
 
 Why it matters
 [Step back from board. Three short writes:]
 
-[Write: 1. Policy lives in one place]
+[Write: 1. The model sees only what it needs]
 
-Auth, rate limiting, per-tool access, traces, metrics — all of it lives in the gateway. The MCP servers themselves stay simple. You don't reimplement production hardening across N servers and N clients. You implement it once.
+Five well-named, well-described tools beats seventy-six generic ones every time. Tool-call accuracy goes up. Token cost goes down. The agent stops guessing.
 
-[Write: 2. Servers add themselves]
+[Write: 2. Secrets and URLs leave the prompt]
 
-Platform teams ship MCP servers. Agent teams ship agents. Neither side blocks the other. This is the property — this right here — that lets MCP actually scale inside a real organization with real numbers of agents and tools.
+API keys, base URLs, version numbers — all of that gets templated into the gateway config, never injected into the LLM context. One place to rotate keys. One place to bump a docs version. The agent doesn't know and doesn't care.
 
-[Write: 3. Failure stops being the client's problem]
+[Write: 3. Platform teams ship, agent teams consume]
 
-Set failureMode: FailOpen on the backend. One bad MCP server doesn't kill the session — the gateway just serves the healthy ones and keeps going. Without this, every single agent has to reimplement that fallback in its own code. And they will. Badly.
+Subject-matter experts curate the virtual MCP for a use case — "developer onboarding," "incident response," "PR review" — and ship it as YAML. Agent teams just point at the gateway. Neither side blocks the other. This is the property that lets MCP actually scale inside a real org.
+
+[Write: 4. Failure stops being the client's problem]
+
+Set failureMode: FailOpen on the backend. One flaky upstream — Jira's down, the docs server is slow — doesn't kill the session. The gateway serves the healthy tools and keeps going. Without this, every agent reimplements that fallback. And they will. Badly.
 
 
 Land it
@@ -88,10 +116,10 @@ Land it
 
 [Write: Virtual MCP = API-gateway pattern, applied to MCP.]
 
-That's the whole idea. The reason API gateways became table stakes for REST and gRPC is exactly the reason virtual MCP matters now — without it, every agent is coupled to the topology of every backend, and that doesn't survive contact with production.
+That's the whole idea. Seventy-six tools become five. Four connections become one. Scattered URLs become a curated catalog. The reason API gateways became table stakes for REST and gRPC is exactly the reason virtual MCP matters now — without it, every agent is coupled to the topology of every backend, and that doesn't survive contact with production.
 
-One endpoint. Many tools. Policy in the middle.
+One endpoint. The right tools. Policy in the middle.
 
-That's virtual MCP.
+That's virtual MCP — and that's what agentgateway gives you out of the box.
 
 [Cap marker. End.]
