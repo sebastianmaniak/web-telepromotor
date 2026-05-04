@@ -4,30 +4,16 @@ Hey, I'm Sebastian from Solo.io.
 
 [Standard opener — start here if it's part of the series.]
 
-Quick one. You've got an AI agent helping a developer ship a feature. To do its job it needs to read the Jira ticket, pull the GitHub issue and the open PR, check the internal architecture docs, and query the team's knowledge base.
+We are now in a world where ai agents are helping developers ship features.. and to do this job, they need to read jira tickets, pull the GitHub issue and the open PR, check the internal architecture docs, and query the team's knowledge base.
 
-Four different MCP servers. Four different connections. And the way the spec is written today, the agent is on the hook for all of it.
+For all of these 4 mcp servers being used, we have to manage 4 different connection, 4 different ways they are authenicated and authoizieded ... the way the spec is written today, the agent is on the hook for it all.  
+
 
 The question I want to answer is: how should the agent actually plug into all those tools — and why does the answer matter more than it sounds like it should.
 
+For every sepearate workflow , each mcp server the agent has its own auth, its own url, its own little catalog of tools for it do anything useful, 
 
-Panel 1 — the problem
-[Write at top: Without virtual MCP]
-
-Here's the naive picture.
-
-[Draw agent box on left, label "AI agent"]
-
-The agent. On the right, the four servers it needs —
-
-[Draw four server boxes stacked: Jira, GitHub, Docs, Knowledge Base]
-
-Each one a separate workload. Each one with its own auth, its own URL, its own little catalog of tools.
-
-To do anything useful, the agent opens a connection to each one.
-
-[Draw four lines fanning out from agent to each server]
-
+having 4 serves and 4 connections is easy to manage ... looks fine.. until each developer starts spinning up it's own agents, its own mcp servers , 
 Four servers, four connections. Looks fine. It isn't.
 
 [Tap the lines]
