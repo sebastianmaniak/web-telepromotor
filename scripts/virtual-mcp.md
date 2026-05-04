@@ -13,35 +13,34 @@ The question I want to answer is: how should the agent actually plug into all th
 
 For every sepearate workflow , each mcp server the agent has its own auth, its own url, its own little catalog of tools for it do anything useful, 
 
-having 4 serves and 4 connections is easy to manage ... looks fine.. until each developer starts spinning up it's own agents, its own mcp servers , 
-Four servers, four connections. Looks fine. It isn't.
+having 4 serves and 4 connections is easy to manage ... looks fine.. until each developer starts spinning up it's own agents, its own mcp servers.. it isn't
 
-[Tap the lines]
-
-Every line is its own auth handshake. Its own rate limit. Its own retry. Its own observability story. And every client that wants those tools has to know the full list — the URLs, the credentials, all of it.
+because everyone link here has its own auth handshake, Its own rate limit. Its own retry. Its own observability story. And every client that wants those tools has to know the full list — the URLs, the credentials, all of it.
 
 But here's the part that really bites.
 
 [Circle the Jira box. Write next to it: 25 tools]
 [Circle the GitHub box. Write next to it: 51 tools]
 
-Jira's MCP server exposes twenty-five tools. GitHub's exposes fifty-one. For this workflow, the developer needs maybe two from each. But MCP picks tools at the granularity of the server, not the tool — so the agent gets the full seventy-six dumped into its context, plus everything else from docs and the KB.
+Jira's MCP server exposes twenty-five tools. GitHub's exposes fifty-one. For this workflow, the developer needs maybe two from each. But MCP picks tools at the granularity of the server, not the tool — so the agent gets the full seventy-six dumped into its context, plus everything else from docs and the Knowledge base..
 
-[Step back. Wave at the whole right side]
+Now the model has to pick the right tool out of hundred-plus tools, half of which are noise for the task.. 
+leading the tool selection accurasy drop, the latecny to gup, the tokens to get burned.. 
 
-Now the model has to pick the right tool out of a hundred-plus, half of which are noise for this task. Tool selection accuracy drops. Latency goes up. Tokens get burned.
+And the knowledge is scattered. 
+Want the Python async docs? The agent has to know the exact URL. 
+Want the runbook? Different URL. None of it is discoverable — it's tribal knowledge baked into prompts.
 
-And the knowledge is scattered. Want the Python async docs? The agent has to know the exact URL. Want the runbook? Different URL. None of it is discoverable — it's tribal knowledge baked into prompts.
 
 This is the same N-by-M coupling problem that pushed every REST and gRPC shop toward an API gateway ten years ago. We've seen this movie.
 
+So what do we doo.. lets start a fresh lightboard here...
 
-Panel 2 — the fix
-[Move to fresh section. Write at top: With virtual MCP]
+
+[ new image ]
 
 Same agent.
 
-[Draw agent on left]
 
 But this time, in the middle —
 
