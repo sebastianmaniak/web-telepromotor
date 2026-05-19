@@ -1,16 +1,5 @@
 # Agent Registry — Lightboard Session
 
-3–5 min · Platform / DevOps audience · What it is, what it solves, how to start
-
-This doc is split into two areas. **Area 1 — The Script** is the words you say, panel by panel, with light stage cues. **Area 2 — The Drawings** is every draw instruction in order, plus reference diagrams.
-
----
-
-# Area 1 — The Script
-
-## Intro
-
-[Look at camera, no drawing yet.]
 
 Hey — I'm Sebastian Maniak.
 
@@ -36,15 +25,17 @@ Agents, MCP servers, skills, prompts — all cataloged the same way. Publish wit
 
 The catalogue is curated by your organization, you govern who can publish and who can pull 
 
-You score and entruch the metadata,, 
+You score and enrich the metadata,, 
 
 So when a team deploys a mcp server you actually know what it does and how trusted it is.. 
 
-submitted ──▶ [REVIEW] ──▶ approved ──▶ prod
-
- "And nothing reaches production without going through review. Audit trail included."
+becuase nothing should be reaching production before going through your organiZation ai governance and guardrails. 
 
 So let's jump into a demo..
+
+We are going to deploy agentregistery with agentgateway create an mcp server, build some skills assign it all to an agent .. publish it to my kubernetes environment and connect my claude code to it.
+
+
 
 
 ## Wrap
