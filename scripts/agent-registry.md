@@ -1,48 +1,120 @@
-# Agent Registry — Lightboard Session
+# What Is Agent Registry? — YouTube Script
 
+**Target length:** ~4 minutes (~550 spoken words)
+**Tone:** Educational explainer, not a product pitch
+**Links:** https://aregistry.ai · https://github.com/agentregistry-dev/agentregistry
 
-Hey — I'm Sebastian Maniak.
+---
 
+## 0:00 — OPEN (0:00–0:25)
 
-Today I want to walk you through a project called Agent Registry — what it is, what it solves for platform teams, and how you get started.
+**[VISUAL: clean title card or whiteboard-style intro]**
 
+**HOST:**
+> When you build an AI agent, you're not really building one thing. You're assembling several. There's the agent's identity, the prompts it runs on, the skills it has, and the tools it can call out to through MCP servers.
 
-## Panel 1 — the problem
+> Each of those pieces is its own artifact. And right now, most teams don't have a good place to store them. That's the gap **Agent Registry** is built to fill. Let's walk through what it actually is.
 
-Let's start with where most teams are right now. On one side of the board, you've got your developers. On the other, the new building blocks they need to ship agentic apps — MCP servers, agents, and skills. And those are showing up faster than anyone can vet them.
+---
 
-So what ends up happening? Every developer wires themselves up to whichever ones they need. Different teams pin different versions of the same server. Someone on the team is already running an MCP server they npx-installed off a GitHub repo they found yesterday. And nobody — really, nobody — owns that supply chain.
+## 0:25 — THE PROBLEM: SCATTERED AI ARTIFACTS (0:25–1:10)
 
-Now, if you put your platform-engineering hat on for a second, that picture really comes down to four problems.
+**[VISUAL: diagram of artifacts spread across npm, PyPI, Docker Hub, GitHub, local folders]**
 
-The first one is trust. Is this artifact actually safe to run inside our walls? The second is versions — what's pinned where, and can we roll it back if it breaks? The third is governance — who's even allowed to publish these things, and who's allowed to pull them down? And the fourth is discovery. When a new developer joins your team, how do they find the approved set without DM'ing a senior engineer?
+**HOST:**
+> Today, the building blocks of an AI agent live in a lot of different places.
 
-We solve this issue with a central AI Artifcatory.. called agent registry.. It's an open source catalog for your AI 
+> An MCP server might be published as an npm package. Another one might be a Python package on PyPI. A third might be a Docker image on Docker Hub, or just a script someone wrote and put in a GitHub repo.
 
+> Skills — which are structured packages of instructions and reference material that teach an agent how to do a specific task — usually live in folders on someone's laptop, or buried in a private repository.
 
-The whole idea is one central place that hosts your  AI articfacts: 
-Agents, MCP servers, skills, prompts — all cataloged the same way. Publish with one CLI command or your existing git ops process. Search by name or by *meaning* .  Push/pull into yout Kubernetes infrascutrue, and consumed by your agents, claude code, cursor, grok build, wherever you need it."
+> Agent definitions and prompt templates often aren't versioned at all. They're copy-pasted between developers.
 
-The catalogue is curated by your organization, you govern who can publish and who can pull 
+> So when a new person joins the team and wants to use the same setup, there's no single place to look. They have to track down each piece manually, figure out which version, set the right environment variables, and configure their IDE by hand. That's the problem.
 
-You score and enrich the metadata,, 
+---
 
-So when a team deploys a mcp server you actually know what it does and how trusted it is.. 
+## 1:10 — WHAT AGENT REGISTRY IS (1:10–2:00)
 
-becuase nothing should be reaching production before going through your organiZation ai governance and guardrails. 
+**[VISUAL: same diagram, but all artifacts now flowing into a single registry box]**
 
-So let's jump into a demo..
+**HOST:**
+> Agent Registry is an open-source platform that gives those artifacts a single home. It's a registry — in the same sense that Docker Hub is a registry for container images, or npm is a registry for JavaScript packages — but built specifically for AI artifacts.
 
-We are going to deploy agentregistery with agentgateway create an mcp server, build some skills assign it all to an agent .. publish it to my kubernetes environment and connect my claude code to it.
+> It handles four artifact types: **MCP servers**, **agents**, **skills**, and **prompts**. You can pull MCP servers in from npm, PyPI, Docker images, or remote endpoints, and you can publish your own agents and skills directly.
 
+> Every artifact in the registry is versioned. It carries metadata — environment variables, package references, quality scores. And there's one place to look at it: a web UI that runs on `localhost:12121`, or a command-line tool called `arctl`.
 
+> So instead of "go find the right MCP server," it becomes "search the registry."
 
+---
 
-## Wrap
+## 2:00 — HOW CENTRALIZATION ACTUALLY HELPS (2:00–2:55)
 
-So that's Agent Registry. If you take one thing away, it's this: it brings the registry-and-gateway pattern you already trust for containers to the AI stack — so your platform team can ship agents to production with the same kind of controls you'd put on any other piece of your software supply chain.
+**[VISUAL: split into three labeled scenes — Discovery, Governance, Deployment]**
 
- 
- For more information check out  `aregistry.ai`. 
+**HOST:**
+> Centralizing artifacts in one registry changes three things in practice.
 
+> **First, discovery.** Developers stop hunting across repos. They open the registry, search for what they need, and see what their organization has already approved.
 
+> **Second, governance.** A platform team can curate the catalog — review artifacts before they're available company-wide, add context to help others judge whether something is trustworthy, and standardize how things get versioned and promoted. That's hard to do when artifacts are scattered. It's straightforward when they're in one place.
+
+> **Third, deployment.** Because every artifact is described the same way, the path from "I found this" to "it's running and my IDE is using it" becomes consistent. The same workflow works on a laptop or on Kubernetes.
+
+> The artifacts themselves don't change. What changes is the surface area around them — one catalog, one set of tools, one approval path.
+
+---
+
+## 2:55 — THE GATEWAY PIECE (2:55–3:30)
+
+**[VISUAL: architecture diagram — registry feeding agentgateway, gateway connecting to Claude Desktop, Cursor, VS Code]**
+
+**HOST:**
+> One detail worth understanding — Agent Registry pairs with a companion project called **agentgateway**. The registry is where artifacts live. The gateway is how clients actually reach them.
+
+> Instead of each IDE talking directly to every MCP server it needs, the IDE points at one gateway endpoint. The gateway handles authentication, routes the request to the correct backend, and logs the traffic.
+
+> So the registry answers "what artifacts exist." The gateway answers "how do clients securely use them." Together they cover both halves of the workflow.
+
+---
+
+## 3:30 — WRAP-UP (3:30–4:00)
+
+**[HOST direct to camera]**
+
+> So to summarize — Agent Registry is an open-source registry for AI artifacts. It takes MCP servers, agents, skills, and prompts that today live across npm, PyPI, Docker Hub, and scattered repos, and gives them a single, versioned home with shared tooling around them.
+
+> It's Apache 2.0, runs locally or in Kubernetes, and the project lives at `aregistry.ai` — links in the description if you want to dig deeper.
+
+> Thanks for watching.
+
+**[END CARD]**
+
+---
+
+## YouTube Description
+
+> A walkthrough of Agent Registry — an open-source registry for AI artifacts (MCP servers, agents, skills, and prompts). We cover what the project is, the problem of scattered AI artifacts, and how centralization changes discovery, governance, and deployment.
+>
+> 🔗 Links
+> • Website: https://aregistry.ai
+> • GitHub: https://github.com/agentregistry-dev/agentregistry
+> • Docs: https://aregistry.ai/docs/
+>
+> ⏱ Chapters
+> 0:00 Intro
+> 0:25 The problem: scattered AI artifacts
+> 1:10 What Agent Registry is
+> 2:00 How centralization helps
+> 2:55 The gateway piece
+> 3:30 Wrap-up
+>
+> #AI #MCP #AgentRegistry #OpenSource
+
+## Title options
+
+1. **What Is Agent Registry? A Centralized Home for AI Artifacts**
+2. **Agent Registry, Explained: Centralizing MCP Servers, Agents, and Skills**
+3. **How Agent Registry Solves the AI Artifact Sprawl Problem**
+4. **A Registry for AI Artifacts — Agent Registry in 4 Minutes**
