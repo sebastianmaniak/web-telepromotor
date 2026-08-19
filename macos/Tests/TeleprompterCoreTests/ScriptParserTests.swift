@@ -56,6 +56,31 @@ final class ScriptParserTests: XCTestCase {
         XCTAssertGreaterThan(firstSegmentSays.count, 3)
     }
 
+    func testVirtualMcpDropsNonActionBrackets() {
+        let blocks = ScriptParser.parse(FixtureLoader.script("virtual-mcp.md"))
+        let texts = blocks.map(Self.blockText)
+        XCTAssertFalse(texts.contains { $0.contains("Optional cold open") })
+        XCTAssertFalse(texts.contains { $0.contains("Standard opener") })
+    }
+
+    func testVirtualMcpTreatsActionBracketsAsDraw() {
+        let blocks = ScriptParser.parse(FixtureLoader.script("virtual-mcp.md"))
+        let draws = blocks.compactMap { if case .draw(let t) = $0 { return t }; return nil }
+        XCTAssertTrue(draws.contains { $0.localizedCaseInsensitiveContains("Draw agent box") })
+        XCTAssertTrue(draws.contains { $0.localizedCaseInsensitiveContains("Write at top") })
+        XCTAssertTrue(draws.contains { $0.localizedCaseInsensitiveContains("Tap the lines") })
+        XCTAssertTrue(draws.contains { $0.localizedCaseInsensitiveContains("Circle the Jira") })
+        XCTAssertFalse(draws.contains { $0.hasPrefix("[") })
+    }
+
+    func testVirtualMcpSpokenLinesAreSay() {
+        let blocks = ScriptParser.parse(FixtureLoader.script("virtual-mcp.md"))
+        let says = blocks.compactMap { if case .say(let t) = $0 { return t }; return nil }
+        XCTAssertTrue(says.contains { $0.contains("Hey, I'm Sebastian") })
+        XCTAssertTrue(says.contains { $0.contains("Panel 1") })
+        XCTAssertTrue(Block.hasContent(blocks))
+    }
+
     private static func blockText(_ block: Block) -> String {
         switch block {
         case .segment(let t), .say(let t), .draw(let t): return t

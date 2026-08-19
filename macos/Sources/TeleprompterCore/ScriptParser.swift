@@ -143,8 +143,19 @@ public enum ScriptParser {
     }
 
     private static func parseBrackets(_ markdown: String) -> [Block] {
-        // Implemented in Task 5.
-        []
+        var blocks: [Block] = []
+        for paragraph in paragraphs(in: markdown) {
+            if isActionBracket(paragraph), let inner = bracketInner(paragraph) {
+                let stripped = MarkdownStripper.strip(inner)
+                if !stripped.isEmpty { blocks.append(.draw(text: stripped)) }
+                continue
+            }
+            if isNonActionBracket(paragraph) {
+                continue
+            }
+            blocks.append(contentsOf: sayParagraphs(from: paragraph))
+        }
+        return blocks
     }
 
     static func sayParagraphs(from text: String) -> [Block] {
@@ -160,6 +171,30 @@ public enum ScriptParser {
         text.components(separatedBy: "\n\n")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+            .flatMap(isolatingBracketLines)
+    }
+
+    /// Fixture paragraphs often attach `[…]` to the previous spoken line, or stack two brackets, without a blank line.
+    private static func isolatingBracketLines(_ paragraph: String) -> [String] {
+        if bracketInner(paragraph) != nil { return [paragraph] }
+        var result: [String] = []
+        var buffer: [String] = []
+        func flush() {
+            let joined = buffer.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !joined.isEmpty { result.append(joined) }
+            buffer = []
+        }
+        for line in paragraph.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.hasPrefix("["), trimmed.hasSuffix("]"), trimmed.filter({ $0 == "[" }).count == 1 {
+                flush()
+                result.append(trimmed)
+            } else {
+                buffer.append(line)
+            }
+        }
+        flush()
+        return result.isEmpty ? [paragraph] : result
     }
 
     static func isActionBracket(_ paragraph: String) -> Bool {
