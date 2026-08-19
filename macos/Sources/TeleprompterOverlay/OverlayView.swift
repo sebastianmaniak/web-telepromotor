@@ -3,6 +3,7 @@ import TeleprompterCore
 
 struct OverlayView: View {
     @ObservedObject var model: AppModel
+    @State private var lastDragHeight: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -40,8 +41,12 @@ struct OverlayView: View {
         DragGesture()
             .onChanged { value in
                 guard model.hudVisible else { return }
-                model.engine.nudgeScroll(-value.translation.height / 20)
-                model.noteInteraction()
+                let delta = value.translation.height - lastDragHeight
+                lastDragHeight = value.translation.height
+                model.nudgeScroll(-delta)
+            }
+            .onEnded { _ in
+                lastDragHeight = 0
             }
     }
 

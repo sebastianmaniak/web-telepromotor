@@ -3,6 +3,7 @@ import Combine
 import Foundation
 import SwiftUI
 import TeleprompterCore
+import UniformTypeIdentifiers
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -88,7 +89,7 @@ final class AppModel: ObservableObject {
 
     func openFile() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.plainText, .text]
+        panel.allowedContentTypes = [UTType(filenameExtension: "md")].compactMap { $0 }
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.message = "Choose a markdown script"
@@ -117,10 +118,19 @@ final class AppModel: ObservableObject {
             overlay?.setClickThrough(false)
             link?.stop()
         } else {
+            if !overlayVisible {
+                showOverlay()
+            }
             engine.play()
             noteInteraction()
             link?.start()
         }
+        objectWillChange.send()
+    }
+
+    func nudgeScroll(_ delta: Double) {
+        engine.nudgeScroll(delta)
+        noteInteraction()
         objectWillChange.send()
     }
 
@@ -168,8 +178,14 @@ final class AppModel: ObservableObject {
         hotkeys = hk
         if link == nil {
             link = DisplayLinkDriver { [weak self] dt in
-                self?.engine.tick(elapsed: dt)
-                self?.objectWillChange.send()
+                guard let self else { return }
+                self.engine.tick(elapsed: dt)
+                if !self.engine.playing {
+                    self.hudVisible = true
+                    self.overlay?.setClickThrough(false)
+                    self.link?.stop()
+                }
+                self.objectWillChange.send()
             }
         }
         noteInteraction()
