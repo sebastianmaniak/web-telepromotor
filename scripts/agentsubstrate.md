@@ -18,15 +18,25 @@
 
 **SAY:**
 
-> Here's a dirty secret about AI agents: they're lazy. An agent spends almost all of its life doing... nothing. It's waiting — for a user message, a webhook, a tool result. Then it wakes up, does a few seconds of work, and goes back to sleep.
->
-> Now here's the problem. The standard way we run software at scale is Kubernetes, and in Kubernetes, every one of these agents is a pod. And a pod that's asleep still costs you money. It's holding memory. It's holding CPU reservations. It's taking up a slot on this node.
->
-> *(circle the sleeping pods)* Five out of six of these are doing nothing, and you're paying for all six.
->
-> It gets worse. Agents often run untrusted code — code the agent itself wrote — so each one needs its own sandbox. Single tenant. No sharing. So you can't just cram them together. And if you have a *million* agents? The Kubernetes API server was never designed to track a million tiny, bursty things, and its scheduler takes seconds to place a pod — fine for a service that runs for days, terrible for a task that runs for 200 milliseconds.
->
-> This is the problem Agent Substrate exists to solve.
+Hi Sebastian Maniak here, and i wanted to give you an overview of what agent substrates is.. 
+
+Here is the life time time line of an agent..
+
+They're lazy.. 
+
+An agent spends almost all of its life doing.. nnothing... It's waiting for a user message, a webhook , a tool results. Then it wakes up, does a few seconds of work and goes back to sleep.
+
+And the standard way we run software at scale is with kubernetes, and in kubernetes... ever one of these agents is a pod.   and a pods that's asleep still costs you money.. Its holding memory, its holding cpu reservation. it takes up a slot on this now. 
+
+and It gets worse.. agents often run unstrusted code -- code the agent itself wrote.. so each one needs its own sandbox. 
+
+Single tenant. not sharing 
+
+So you can't just cram them together. and if we have one thousand, or 1 million agents?  
+
+The kubernets api was never desigend to track a million of tiny, bursy things.. and its schedule takes seconds to place a pod.. which is great for a service that runs for days.. terrifble for a task that runs for 200 milliseconds. 
+
+This is the problem agent substrate existis to solve. \
 
 ---
 
