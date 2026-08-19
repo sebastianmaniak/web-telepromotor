@@ -11,7 +11,7 @@ public enum MarkdownStripper {
         s = replace(s, pattern: "(\\*\\*|__)(.*?)\\1", template: "$2")
         s = replace(s, pattern: "(\\*|_)(.*?)\\1", template: "$2")
         s = replace(s, pattern: "~~(.*?)~~", template: "$1")
-        s = replace(s, pattern: "^>\\s+", template: "")
+        s = replace(s, pattern: "^>[ \\t]?", template: "")
         s = replace(s, pattern: "^[-*+]\\s+", template: "")
         s = replace(s, pattern: "^\\d+\\.\\s+", template: "")
         s = replace(s, pattern: "^---+$", template: "")

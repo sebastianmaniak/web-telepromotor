@@ -22,4 +22,13 @@ final class MarkdownStripperTests: XCTestCase {
         let out = MarkdownStripper.strip("a\n\n\n\nb")
         XCTAssertEqual(out, "a\n\nb")
     }
+
+    func testBlockquoteMarkerDoesNotEatBlankLines() {
+        let out = MarkdownStripper.strip("first\n\n>\n\nsecond")
+        XCTAssertTrue(out.contains("first"))
+        XCTAssertTrue(out.contains("second"))
+        XCTAssertFalse(out.contains("firstsecond"))
+        // first and second must remain separate paragraphs
+        XCTAssertTrue(out.contains("first\n\n") || out.components(separatedBy: "\n\n").count >= 2)
+    }
 }

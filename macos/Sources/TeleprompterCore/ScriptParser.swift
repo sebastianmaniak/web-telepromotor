@@ -102,7 +102,7 @@ public enum ScriptParser {
             i += 1
         }
         flush()
-        return blocks
+        return droppingEmptySegments(blocks)
     }
 
     private static func isHeading(_ line: String) -> Bool {
@@ -118,7 +118,24 @@ public enum ScriptParser {
     }
 
     private static func isDrawMarker(_ line: String) -> Bool {
-        line.range(of: #"^\s*\*\*DRAW"#, options: [.regularExpression, .caseInsensitive]) != nil
+        line.range(of: #"^\s*\*\*(DRAW|ERASE|THEN DRAW)"#, options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    private static func droppingEmptySegments(_ blocks: [Block]) -> [Block] {
+        blocks.enumerated().compactMap { index, block in
+            guard case .segment = block else { return block }
+            let untilNextSegment = blocks.suffix(from: index + 1).prefix {
+                if case .segment = $0 { return false }
+                return true
+            }
+            let hasContent = untilNextSegment.contains { content in
+                switch content {
+                case .say, .draw: return true
+                case .segment: return false
+                }
+            }
+            return hasContent ? block : nil
+        }
     }
 
     private static func isSayMarker(_ line: String) -> Bool {
