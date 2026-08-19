@@ -46,10 +46,14 @@ public enum ScriptStore {
         bookmark: URL?,
         executableURL: URL,
         fileManager: FileManager,
-        repoWalkStart: URL
+        repoWalkStart: URL,
+        bundledScripts: URL? = nil
     ) -> URL? {
         if let bookmark, fileManager.fileExists(atPath: bookmark.path) {
             return bookmark
+        }
+        if let bundledScripts, fileManager.fileExists(atPath: bundledScripts.path) {
+            return bundledScripts
         }
         return findRepoScriptsFolder(from: repoWalkStart, fileManager: fileManager)
             ?? findRepoScriptsFolder(from: executableURL, fileManager: fileManager)

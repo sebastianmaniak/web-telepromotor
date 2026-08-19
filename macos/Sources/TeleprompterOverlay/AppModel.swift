@@ -55,7 +55,8 @@ final class AppModel: ObservableObject {
             bookmark: bookmark,
             executableURL: Bundle.main.bundleURL,
             fileManager: .default,
-            repoWalkStart: URL(fileURLWithPath: #filePath)
+            repoWalkStart: URL(fileURLWithPath: #filePath),
+            bundledScripts: Bundle.main.resourceURL?.appendingPathComponent("scripts")
         )
         if let scriptsFolder {
             scripts = ScriptStore.listScripts(in: scriptsFolder)
