@@ -25,7 +25,7 @@ final class ScriptParserTests: XCTestCase {
     }
 
     func testAgentRegistryDropsPreambleAndProductionNotes() {
-        let blocks = ScriptParser.parse(FixtureLoader.script("agent-registry.md"))
+        let blocks = ScriptParser.parse(FixtureLoader.script("agentsubstrate.md"))
         let texts = blocks.map(Self.blockText)
         XCTAssertFalse(texts.contains { $0.localizedCaseInsensitiveContains("Production notes") })
         XCTAssertFalse(texts.contains { $0.contains("Target runtime") })
@@ -33,21 +33,21 @@ final class ScriptParserTests: XCTestCase {
     }
 
     func testAgentRegistryHasSegmentsSayAndDraw() {
-        let blocks = ScriptParser.parse(FixtureLoader.script("agent-registry.md"))
+        let blocks = ScriptParser.parse(FixtureLoader.script("agentsubstrate.md"))
         XCTAssertTrue(blocks.contains { if case .segment(let t) = $0 { return t.contains("SEGMENT 1") }; return false })
         XCTAssertTrue(blocks.contains { if case .draw(let t) = $0 { return t.contains("DRAW (left third)") && t.contains("Kubernetes node") }; return false })
         XCTAssertTrue(blocks.contains { if case .say(let t) = $0 { return t.contains("Hi Sebastian Maniak") }; return false })
     }
 
     func testAgentRegistryStripsBoldInsideSay() {
-        let blocks = ScriptParser.parse(FixtureLoader.script("agent-registry.md"))
+        let blocks = ScriptParser.parse(FixtureLoader.script("agentsubstrate.md"))
         let says = blocks.compactMap { if case .say(let t) = $0 { return t }; return nil }
         XCTAssertTrue(says.contains { $0.contains("suspends") })
         XCTAssertFalse(says.contains { $0.contains("**") })
     }
 
     func testAgentRegistrySplitsSayOnBlankLines() {
-        let blocks = ScriptParser.parse(FixtureLoader.script("agent-registry.md"))
+        let blocks = ScriptParser.parse(FixtureLoader.script("agentsubstrate.md"))
         let firstSegmentSays = blocks.drop { block in
             if case .segment(let t) = block { return !t.contains("SEGMENT 1") }
             return true
