@@ -38,8 +38,91 @@ public enum ScriptParser {
     }
 
     private static func parseLabeled(_ markdown: String) -> [Block] {
-        // Implemented in Task 4. Stub keeps Format C tests green.
-        []
+        let lines = markdown.components(separatedBy: "\n")
+        guard let firstHeading = lines.firstIndex(where: { isHeading($0) }) else {
+            return []
+        }
+
+        var blocks: [Block] = []
+        var i = firstHeading
+        var mode: String? = nil // "say" | "draw" | "skip"
+        var buffer: [String] = []
+
+        func flush() {
+            let raw = buffer.joined(separator: "\n")
+            buffer = []
+            let current = mode
+            mode = nil
+            guard let current else { return }
+            if current == "skip" { return }
+            if current == "draw" {
+                let stripped = MarkdownStripper.strip(raw)
+                if !stripped.isEmpty { blocks.append(.draw(text: stripped)) }
+                return
+            }
+            blocks.append(contentsOf: sayParagraphs(from: raw))
+        }
+
+        while i < lines.count {
+            let line = lines[i]
+            if isHorizontalRule(line) {
+                i += 1
+                continue
+            }
+            if isHeading(line) {
+                flush()
+                let title = headingTitle(line)
+                if title.localizedCaseInsensitiveContains("production notes") {
+                    mode = "skip"
+                    buffer = []
+                } else {
+                    blocks.append(.segment(title: title))
+                    mode = nil
+                }
+                i += 1
+                continue
+            }
+            if isDrawMarker(line) {
+                flush()
+                mode = "draw"
+                buffer = [line.replacingOccurrences(of: "**", with: "")]
+                i += 1
+                continue
+            }
+            if isSayMarker(line) {
+                flush()
+                mode = "say"
+                buffer = []
+                i += 1
+                continue
+            }
+            if mode != nil {
+                buffer.append(line)
+            }
+            i += 1
+        }
+        flush()
+        return blocks
+    }
+
+    private static func isHeading(_ line: String) -> Bool {
+        line.range(of: #"^##\s+"#, options: .regularExpression) != nil
+    }
+
+    private static func headingTitle(_ line: String) -> String {
+        MarkdownStripper.strip(line)
+    }
+
+    private static func isHorizontalRule(_ line: String) -> Bool {
+        line.trimmingCharacters(in: .whitespaces).range(of: #"^---+$"#, options: .regularExpression) != nil
+    }
+
+    private static func isDrawMarker(_ line: String) -> Bool {
+        line.range(of: #"^\s*\*\*DRAW"#, options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    private static func isSayMarker(_ line: String) -> Bool {
+        line.range(of: #"^\s*\*\*SAY:\*\*"#, options: [.regularExpression, .caseInsensitive]) != nil
     }
 
     private static func parseBrackets(_ markdown: String) -> [Block] {
