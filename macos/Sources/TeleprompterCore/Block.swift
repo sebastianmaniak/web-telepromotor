@@ -1,9 +1,9 @@
 import Foundation
 
 public enum Block: Equatable, Sendable {
-    case segment(_ title: String)
-    case say(_ text: String)
-    case draw(_ text: String)
+    case segment(title: String)
+    case say(text: String)
+    case draw(text: String)
 
     public static func spokenWordCount(_ blocks: [Block]) -> Int {
         blocks.reduce(0) { count, block in

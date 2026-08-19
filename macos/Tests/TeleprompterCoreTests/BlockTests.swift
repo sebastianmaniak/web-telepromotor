@@ -4,10 +4,10 @@ import XCTest
 final class BlockTests: XCTestCase {
     func testSpokenWordCountIgnoresDrawAndSegment() {
         let blocks: [Block] = [
-            .segment("SEGMENT 1"),
-            .draw("DRAW (left): a box"),
-            .say("Hello there friend"),
-            .say("One two")
+            .segment(title: "SEGMENT 1"),
+            .draw(text: "DRAW (left): a box"),
+            .say(text: "Hello there friend"),
+            .say(text: "One two")
         ]
         XCTAssertEqual(Block.spokenWordCount(blocks), 5)
     }
@@ -18,8 +18,8 @@ final class BlockTests: XCTestCase {
     }
 
     func testHasSpokenOrDrawContent() {
-        XCTAssertFalse(Block.hasContent([.segment("Only")]))
-        XCTAssertTrue(Block.hasContent([.say("Hi")]))
-        XCTAssertTrue(Block.hasContent([.draw("Draw a box")]))
+        XCTAssertFalse(Block.hasContent([.segment(title: "Only")]))
+        XCTAssertTrue(Block.hasContent([.say(text: "Hi")]))
+        XCTAssertTrue(Block.hasContent([.draw(text: "Draw a box")]))
     }
 }
