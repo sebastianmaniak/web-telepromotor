@@ -12,7 +12,7 @@ struct OverlayView: View {
                 Color.clear
                 textStack(width: wrapWidth)
                     .frame(width: wrapWidth, alignment: .center)
-                    .offset(y: -model.engine.scrollY)
+                    .offset(y: -model.scrollY)
                     .gesture(drag)
                 topFade
                 bottomFade

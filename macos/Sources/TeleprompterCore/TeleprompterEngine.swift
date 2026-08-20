@@ -79,6 +79,8 @@ public final class TeleprompterEngine {
 
     public func tick(elapsed: TimeInterval) {
         guard playing else { return }
+        // Layout has not measured the text yet — do not treat that as "finished".
+        if maxScroll <= 0 { return }
         scrollY += pixelsPerSecond * elapsed
         if scrollY >= maxScroll {
             scrollY = maxScroll

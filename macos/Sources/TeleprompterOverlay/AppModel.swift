@@ -15,6 +15,7 @@ final class AppModel: ObservableObject {
     @Published var permissionNotice: String?
     @Published var alertMessage: String?
     @Published var timerFlashOpacity: Double = 1
+    @Published var scrollY: Double = 0
     @Published var engine: TeleprompterEngine
 
     let hudTimeout: TimeInterval = 3
@@ -74,6 +75,7 @@ final class AppModel: ObservableObject {
         blocks = item.blocks
         engine.restart()
         engine.pause()
+        scrollY = 0
         persistLastScript(item.url)
         showOverlay()
     }
@@ -154,6 +156,7 @@ final class AppModel: ObservableObject {
 
     func nudgeScroll(_ delta: Double) {
         engine.nudgeScroll(delta)
+        scrollY = engine.scrollY
         noteInteraction()
         objectWillChange.send()
     }
@@ -161,7 +164,11 @@ final class AppModel: ObservableObject {
     func restart() {
         let wasPlaying = engine.playing
         engine.restart()
-        if wasPlaying { engine.play() }
+        scrollY = 0
+        if wasPlaying {
+            engine.play()
+            link?.start()
+        }
         noteInteraction()
         objectWillChange.send()
     }
@@ -202,14 +209,17 @@ final class AppModel: ObservableObject {
         hotkeys = hk
         if link == nil {
             link = DisplayLinkDriver { [weak self] dt in
-                guard let self else { return }
-                self.engine.tick(elapsed: dt)
-                if !self.engine.playing {
-                    self.hudVisible = true
-                    self.overlay?.setClickThrough(false)
-                    self.link?.stop()
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.engine.tick(elapsed: dt)
+                    self.scrollY = self.engine.scrollY
+                    if !self.engine.playing {
+                        self.hudVisible = true
+                        self.overlay?.setClickThrough(false)
+                        self.link?.stop()
+                    }
+                    self.objectWillChange.send()
                 }
-                self.objectWillChange.send()
             }
         }
         noteInteraction()

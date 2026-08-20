@@ -58,6 +58,25 @@ final class TeleprompterEngineTests: XCTestCase {
         XCTAssertEqual(e.scrollY, 0)
     }
 
+    func testTickWaitsWhenContentNotMeasured() {
+        let e = TeleprompterEngine(
+            speed: 150,
+            fontSize: 32,
+            timerDuration: 10,
+            viewportWidth: 1000,
+            viewportHeight: 800,
+            contentHeight: 0
+        )
+        e.play()
+        e.tick(elapsed: 1)
+        XCTAssertTrue(e.playing)
+        XCTAssertEqual(e.scrollY, 0)
+        e.contentHeight = 4000
+        e.tick(elapsed: 1)
+        XCTAssertGreaterThan(e.scrollY, 0)
+        XCTAssertTrue(e.playing)
+    }
+
     func testClampAtEndAutoPauses() {
         let e = makeEngine()
         e.play()

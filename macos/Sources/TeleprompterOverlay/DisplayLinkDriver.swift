@@ -1,11 +1,10 @@
 import AppKit
 import Foundation
-import QuartzCore
 
+/// Drives scroll on the main run loop. NSScreen/CADisplayLink does not reliably
+/// fire for a floating NSPanel, so a 60fps Timer is the source of ticks.
 final class DisplayLinkDriver: NSObject {
-    private var link: CADisplayLink?
     private var timer: Timer?
-    private var last: CFTimeInterval?
     private let onTick: (TimeInterval) -> Void
 
     init(onTick: @escaping (TimeInterval) -> Void) {
@@ -15,13 +14,6 @@ final class DisplayLinkDriver: NSObject {
 
     func start() {
         stop()
-        last = nil
-        if let screen = NSScreen.main {
-            let link = screen.displayLink(target: self, selector: #selector(stepLink(_:)))
-            link.add(to: .main, forMode: .common)
-            self.link = link
-            return
-        }
         let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             self?.onTick(1.0 / 60.0)
         }
@@ -30,23 +22,11 @@ final class DisplayLinkDriver: NSObject {
     }
 
     func stop() {
-        link?.invalidate()
-        link = nil
         timer?.invalidate()
         timer = nil
-        last = nil
-    }
-
-    @objc private func stepLink(_ link: CADisplayLink) {
-        let now = link.timestamp
-        if let last {
-            onTick(now - last)
-        }
-        last = now
     }
 
     deinit {
-        link?.invalidate()
         timer?.invalidate()
     }
 }
