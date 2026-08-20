@@ -112,21 +112,44 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func play() {
+        if engine.playing { return }
+        if loadedScript == nil, let first = scripts.first {
+            loadScript(first)
+        }
+        guard loadedScript != nil else { return }
+        if !overlayVisible {
+            showOverlay()
+        }
+        engine.play()
+        noteInteraction()
+        link?.start()
+        objectWillChange.send()
+    }
+
+    func pause() {
+        guard engine.playing else { return }
+        engine.pause()
+        hudVisible = true
+        overlay?.setClickThrough(false)
+        link?.stop()
+        objectWillChange.send()
+    }
+
     func togglePlay() {
         if engine.playing {
-            engine.pause()
-            hudVisible = true
-            overlay?.setClickThrough(false)
-            link?.stop()
+            pause()
         } else {
-            if !overlayVisible {
-                showOverlay()
-            }
-            engine.play()
-            noteInteraction()
-            link?.start()
+            play()
         }
-        objectWillChange.send()
+    }
+
+    func slower() {
+        setSpeed(engine.speed - 10)
+    }
+
+    func faster() {
+        setSpeed(engine.speed + 10)
     }
 
     func nudgeScroll(_ delta: Double) {

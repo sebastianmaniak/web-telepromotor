@@ -52,20 +52,21 @@ struct ScriptPickerView: View {
                 Button("Quit") { NSApplication.shared.terminate(nil) }
             }
 
-            HStack {
-                Menu("Timer \(model.engine.timerDisplay)") {
-                    Button("+30s") { model.adjustTimer(steps: 1) }
-                    Button("−30s") { model.adjustTimer(steps: -1) }
+            GroupBox("Playback") {
+                VStack(alignment: .leading, spacing: 10) {
+                    PlaybackControls(model: model)
+                    HStack {
+                        Menu("Timer \(model.engine.timerDisplay)") {
+                            Button("+30s") { model.adjustTimer(steps: 1) }
+                            Button("−30s") { model.adjustTimer(steps: -1) }
+                        }
+                        Spacer()
+                        if model.loadedScript != nil, !model.overlayVisible {
+                            Button("Show overlay") { model.showOverlay() }
+                        }
+                    }
                 }
-                Spacer()
-                if model.loadedScript != nil, !model.overlayVisible {
-                    Button("Show overlay") { model.showOverlay() }
-                }
-                Button(model.engine.playing ? "Pause" : "Start") {
-                    startSelected()
-                }
-                .keyboardShortcut(.defaultAction)
-                .disabled(model.scripts.isEmpty && model.loadedScript == nil)
+                .padding(6)
             }
         }
         .padding(20)
@@ -82,12 +83,4 @@ struct ScriptPickerView: View {
         )
     }
 
-    private func startSelected() {
-        if model.loadedScript == nil, let first = model.scripts.first {
-            model.loadScript(first)
-        }
-        if model.loadedScript != nil {
-            model.togglePlay()
-        }
-    }
 }
