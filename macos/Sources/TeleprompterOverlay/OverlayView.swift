@@ -3,50 +3,62 @@ import TeleprompterCore
 
 struct OverlayView: View {
     @ObservedObject var model: AppModel
-    @State private var lastDragHeight: CGFloat = 0
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !model.engine.playing)) { timeline in
-            GeometryReader { geo in
-                let wrapWidth = max(80, geo.size.width - 40)
-                ZStack {
-                    Color.clear
-                    textStack(width: wrapWidth)
-                        .frame(width: wrapWidth, alignment: .center)
-                        .offset(y: -model.scrollY)
-                        .gesture(drag)
-                    topFade
-                    bottomFade
-                    guideLine
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
-                        .padding(1)
-                        .allowsHitTesting(false)
-                    if model.hudVisible {
-                        VStack {
-                            Spacer()
-                            ControlHUD(model: model)
-                                .padding(.bottom, 8)
-                        }
-                    }
+        Group {
+            if model.engine.playing {
+                TimelineView(.periodic(from: .now, by: 1.0 / 60.0)) { timeline in
+                    OverlayCanvas(model: model, now: timeline.date)
                 }
-                .onAppear {
-                    model.engine.viewportWidth = wrapWidth
-                    model.engine.viewportHeight = geo.size.height
-                    if model.engine.playing {
-                        model.advanceFrame(at: Date())
-                    }
-                }
-                .onChange(of: geo.size) { _, size in
-                    model.engine.viewportWidth = max(80, size.width - 40)
-                    model.engine.viewportHeight = size.height
-                }
-                .onChange(of: timeline.date) { _, date in
-                    model.advanceFrame(at: date)
-                }
+            } else {
+                OverlayCanvas(model: model, now: Date())
             }
         }
         .ignoresSafeArea()
+    }
+}
+
+private struct OverlayCanvas: View {
+    @ObservedObject var model: AppModel
+    let now: Date
+    @State private var lastDragHeight: CGFloat = 0
+
+    var body: some View {
+        let _ = model.advanceFrame(at: now)
+        GeometryReader { geo in
+            let wrapWidth = max(80, geo.size.width - 40)
+            ZStack(alignment: .top) {
+                Color.clear
+                textStack(width: wrapWidth, viewportHeight: geo.size.height)
+                    .frame(width: wrapWidth, alignment: .top)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .offset(y: -model.scrollY)
+                    .gesture(drag)
+                topFade
+                bottomFade
+                guideLine
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
+                    .padding(1)
+                    .allowsHitTesting(false)
+                if model.hudVisible {
+                    VStack {
+                        Spacer()
+                        ControlHUD(model: model)
+                            .padding(.bottom, 8)
+                    }
+                }
+            }
+            .clipped()
+            .onAppear {
+                model.engine.viewportWidth = wrapWidth
+                model.engine.viewportHeight = geo.size.height
+            }
+            .onChange(of: geo.size) { _, size in
+                model.engine.viewportWidth = max(80, size.width - 40)
+                model.engine.viewportHeight = size.height
+            }
+        }
     }
 
     private var drag: some Gesture {
@@ -62,13 +74,13 @@ struct OverlayView: View {
             }
     }
 
-    private func textStack(width: CGFloat) -> some View {
+    private func textStack(width: CGFloat, viewportHeight: CGFloat) -> some View {
         VStack(alignment: .center, spacing: 28) {
-            Spacer().frame(height: model.engine.viewportHeight * 0.33)
+            Color.clear.frame(height: viewportHeight * 0.33)
             ForEach(Array(model.blocks.enumerated()), id: \.offset) { _, block in
                 blockView(block, width: width)
             }
-            Spacer().frame(height: model.engine.viewportHeight * 0.5)
+            Color.clear.frame(height: viewportHeight * 0.5)
         }
         .frame(width: width)
         .background(
@@ -76,7 +88,11 @@ struct OverlayView: View {
                 Color.clear.preference(key: ContentHeightKey.self, value: g.size.height)
             }
         )
-        .onPreferenceChange(ContentHeightKey.self) { model.engine.contentHeight = $0 }
+        .onPreferenceChange(ContentHeightKey.self) { height in
+            if height > 0 {
+                model.engine.contentHeight = height
+            }
+        }
     }
 
     @ViewBuilder
@@ -138,6 +154,6 @@ struct OverlayView: View {
 private struct ContentHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+        value = max(value, nextValue())
     }
 }
