@@ -9,7 +9,7 @@ struct ScriptPickerView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Teleprompter")
                 .font(.title2.weight(.semibold))
-            Text("Pick a script, then Start. The glass overlay covers your screen.")
+            Text("Pick a script, then Start. A small glass window appears — drag it and resize from the corners.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -69,7 +69,7 @@ struct ScriptPickerView: View {
             }
         }
         .padding(20)
-        .frame(minWidth: 420, minHeight: 520)
+        .frame(minWidth: 360, minHeight: 420)
     }
 
     private var selection: Binding<String?> {

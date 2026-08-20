@@ -20,7 +20,7 @@ struct ControlHUD: View {
                     in: Double(TeleprompterEngine.minSpeed)...Double(TeleprompterEngine.maxSpeed),
                     step: 10
                 )
-                .frame(width: 160)
+                .frame(width: 90)
             }
             HStack(spacing: 6) {
                 Button("A−") { model.setFontSize(model.engine.fontSize - 2) }
@@ -36,12 +36,13 @@ struct ControlHUD: View {
                 .opacity(model.engine.timerRemaining == 0 ? model.timerFlashOpacity : 1)
             Text(model.loadedScript?.displayName ?? "")
                 .lineLimit(1)
-                .frame(maxWidth: 180)
+                .frame(maxWidth: 90)
             Button("Close") { model.hideOverlay() }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .padding(.horizontal, 24)
+        .font(.caption)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal, 8)
     }
 }

@@ -11,17 +11,21 @@ struct OverlayView: View {
                 Color.clear
                 textStack
                     .offset(y: -model.engine.scrollY)
-                    .padding(.horizontal, 48)
+                    .padding(.horizontal, 20)
                     .frame(width: geo.size.width, alignment: .center)
                     .gesture(drag)
                 topFade
                 bottomFade
                 guideLine
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
+                    .padding(1)
+                    .allowsHitTesting(false)
                 if model.hudVisible {
                     VStack {
                         Spacer()
                         ControlHUD(model: model)
-                            .padding(.bottom, 28)
+                            .padding(.bottom, 8)
                     }
                 }
             }
@@ -73,20 +77,20 @@ struct OverlayView: View {
             Text(title)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.white.opacity(0.45))
-                .frame(maxWidth: 900)
+                .frame(maxWidth: .infinity)
         case .say(let text):
             Text(text)
                 .font(.system(size: CGFloat(model.engine.fontSize), weight: .medium))
                 .foregroundStyle(Color.white)
                 .lineSpacing(CGFloat(model.engine.fontSize) * 0.7)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 900)
+                .frame(maxWidth: .infinity)
         case .draw(let text):
             Text(text)
                 .font(.system(size: CGFloat(max(16, model.engine.fontSize - 10)), weight: .regular))
                 .foregroundStyle(Color(red: 1, green: 0.42, blue: 0).opacity(0.85))
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 820)
+                .frame(maxWidth: .infinity)
         }
     }
 
@@ -102,8 +106,8 @@ struct OverlayView: View {
 
     private var topFade: some View {
         VStack {
-            LinearGradient(colors: [Color.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
-                .frame(height: 180)
+            LinearGradient(colors: [Color.black.opacity(0.45), .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 48)
             Spacer()
         }
         .allowsHitTesting(false)
@@ -112,8 +116,8 @@ struct OverlayView: View {
     private var bottomFade: some View {
         VStack {
             Spacer()
-            LinearGradient(colors: [.clear, Color.black.opacity(0.55)], startPoint: .top, endPoint: .bottom)
-                .frame(height: 220)
+            LinearGradient(colors: [.clear, Color.black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
+                .frame(height: 56)
         }
         .allowsHitTesting(false)
     }
