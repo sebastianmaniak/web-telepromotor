@@ -3,32 +3,13 @@ import TeleprompterCore
 
 struct OverlayView: View {
     @ObservedObject var model: AppModel
-
-    var body: some View {
-        Group {
-            if model.engine.playing {
-                TimelineView(.periodic(from: .now, by: 1.0 / 60.0)) { timeline in
-                    OverlayCanvas(model: model, now: timeline.date)
-                }
-            } else {
-                OverlayCanvas(model: model, now: Date())
-            }
-        }
-        .ignoresSafeArea()
-    }
-}
-
-private struct OverlayCanvas: View {
-    @ObservedObject var model: AppModel
-    let now: Date
     @State private var lastDragHeight: CGFloat = 0
 
     var body: some View {
-        let _ = model.advanceFrame(at: now)
         GeometryReader { geo in
             let wrapWidth = max(80, geo.size.width - 40)
             ZStack(alignment: .top) {
-                Color.clear
+                Color.black.opacity(0.35)
                 textStack(width: wrapWidth, viewportHeight: geo.size.height)
                     .frame(width: wrapWidth, alignment: .top)
                     .fixedSize(horizontal: false, vertical: true)
@@ -37,10 +18,6 @@ private struct OverlayCanvas: View {
                 topFade
                 bottomFade
                 guideLine
-                RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
-                    .padding(1)
-                    .allowsHitTesting(false)
                 if model.hudVisible {
                     VStack {
                         Spacer()

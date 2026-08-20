@@ -126,6 +126,7 @@ final class AppModel: ObservableObject {
         }
         lastFrame = nil
         engine.play()
+        link?.start()
         noteInteraction()
         objectWillChange.send()
     }
@@ -169,6 +170,7 @@ final class AppModel: ObservableObject {
         lastFrame = nil
         if wasPlaying {
             engine.play()
+            link?.start()
         }
         noteInteraction()
         objectWillChange.send()
@@ -210,7 +212,7 @@ final class AppModel: ObservableObject {
         hotkeys = hk
         if link == nil {
             link = DisplayLinkDriver { [weak self] dt in
-                Task { @MainActor in
+                DispatchQueue.main.async {
                     guard let self else { return }
                     self.engine.tick(elapsed: dt)
                     self.scrollY = self.engine.scrollY
@@ -219,31 +221,10 @@ final class AppModel: ObservableObject {
                         self.overlay?.setClickThrough(false)
                         self.link?.stop()
                     }
-                    self.objectWillChange.send()
                 }
             }
         }
         noteInteraction()
-    }
-
-    func advanceFrame(at date: Date) {
-        guard engine.playing else {
-            lastFrame = date
-            return
-        }
-        let elapsed: TimeInterval
-        if let lastFrame {
-            elapsed = min(0.05, max(0, date.timeIntervalSince(lastFrame)))
-        } else {
-            elapsed = 1.0 / 60.0
-        }
-        lastFrame = date
-        engine.tick(elapsed: elapsed)
-        scrollY = engine.scrollY
-        if !engine.playing {
-            hudVisible = true
-            overlay?.setClickThrough(false)
-        }
     }
 
     func hideOverlay() {

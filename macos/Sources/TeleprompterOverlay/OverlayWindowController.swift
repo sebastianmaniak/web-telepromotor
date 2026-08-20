@@ -9,36 +9,37 @@ final class OverlayWindow: NSPanel {
 @MainActor
 final class OverlayWindowController: NSWindowController {
     private static let frameDefaultsKey = "tp_overlayFrame"
+    private var hosting: NSHostingController<OverlayView>?
 
-    convenience init(rootView: some View) {
+    convenience init(rootView: OverlayView) {
         let screen = OverlayWindowController.screenUnderMouse() ?? NSScreen.main ?? NSScreen.screens[0]
         let frame = OverlayWindowController.initialFrame(on: screen)
         let panel = OverlayWindow(
             contentRect: frame,
-            styleMask: [.titled, .closable, .resizable, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.titled, .closable, .resizable, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         panel.setFrame(frame, display: false)
-        panel.minSize = NSSize(width: 360, height: 140)
+        panel.minSize = NSSize(width: 360, height: 160)
         panel.isOpaque = false
-        panel.backgroundColor = NSColor.black.withAlphaComponent(0.18)
+        panel.backgroundColor = NSColor.windowBackgroundColor
         panel.hasShadow = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.isMovableByWindowBackground = true
+        panel.isMovableByWindowBackground = false
         panel.ignoresMouseEvents = false
         panel.hidesOnDeactivate = false
-        panel.becomesKeyOnlyIfNeeded = false
         panel.title = "Teleprompter"
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .visible
+        panel.titlebarAppearsTransparent = false
         panel.isFloatingPanel = true
-        let host = NSHostingView(rootView: rootView)
-        host.frame = panel.contentView?.bounds ?? frame
-        host.autoresizingMask = [.width, .height]
-        panel.contentView = host
         self.init(window: panel)
+        let host = NSHostingController(rootView: rootView)
+        host.view.frame = panel.contentView?.bounds ?? frame
+        host.view.autoresizingMask = [.width, .height]
+        panel.contentViewController = host
+        hosting = host
         NotificationCenter.default.addObserver(
             forName: NSWindow.didResizeNotification,
             object: panel,
@@ -59,7 +60,6 @@ final class OverlayWindowController: NSWindowController {
 
     func setClickThrough(_ enabled: Bool) {
         window?.ignoresMouseEvents = enabled
-        window?.isMovableByWindowBackground = !enabled
     }
 
     func pin(to screen: NSScreen) {
@@ -96,7 +96,7 @@ final class OverlayWindowController: NSWindowController {
     private static func defaultFrame(on screen: NSScreen) -> NSRect {
         let vis = screen.visibleFrame
         let width = min(720, vis.width * 0.5)
-        let height = min(220, vis.height * 0.24)
+        let height = min(260, vis.height * 0.28)
         return NSRect(
             x: vis.midX - width / 2,
             y: vis.maxY - height - 28,
