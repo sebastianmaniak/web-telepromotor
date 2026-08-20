@@ -6,6 +6,22 @@ final class OverlayWindow: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
+final class ClearHostingController<Content: View>: NSHostingController<Content> {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.wantsLayer = true
+        view.layer?.isOpaque = false
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
+    override func viewWillAppear() {
+        super.viewWillAppear()
+        view.wantsLayer = true
+        view.layer?.isOpaque = false
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+    }
+}
+
 @MainActor
 final class OverlayWindowController: NSWindowController {
     private static let frameDefaultsKey = "tp_overlayFrame"
@@ -23,7 +39,7 @@ final class OverlayWindowController: NSWindowController {
         panel.setFrame(frame, display: false)
         panel.minSize = NSSize(width: 360, height: 160)
         panel.isOpaque = false
-        panel.backgroundColor = NSColor.windowBackgroundColor
+        panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -35,7 +51,7 @@ final class OverlayWindowController: NSWindowController {
         panel.titlebarAppearsTransparent = false
         panel.isFloatingPanel = true
         self.init(window: panel)
-        let host = NSHostingController(rootView: rootView)
+        let host = ClearHostingController(rootView: rootView)
         host.view.frame = panel.contentView?.bounds ?? frame
         host.view.autoresizingMask = [.width, .height]
         panel.contentViewController = host

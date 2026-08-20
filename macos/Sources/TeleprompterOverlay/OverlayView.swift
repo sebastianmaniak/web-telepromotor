@@ -9,14 +9,12 @@ struct OverlayView: View {
         GeometryReader { geo in
             let wrapWidth = max(80, geo.size.width - 40)
             ZStack(alignment: .top) {
-                Color.black.opacity(0.35)
+                Color.clear
                 textStack(width: wrapWidth, viewportHeight: geo.size.height)
                     .frame(width: wrapWidth, alignment: .top)
                     .fixedSize(horizontal: false, vertical: true)
                     .offset(y: -model.scrollY)
                     .gesture(drag)
-                topFade
-                bottomFade
                 guideLine
                 if model.hudVisible {
                     VStack {
@@ -27,6 +25,7 @@ struct OverlayView: View {
                 }
             }
             .clipped()
+            .background(Color.clear)
             .onAppear {
                 model.engine.viewportWidth = wrapWidth
                 model.engine.viewportHeight = geo.size.height
@@ -78,16 +77,19 @@ struct OverlayView: View {
         case .segment(let title):
             wrappedText(title, width: width)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.45))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .shadow(color: .black.opacity(0.9), radius: 3)
         case .say(let text):
             wrappedText(text, width: width)
                 .font(.system(size: CGFloat(model.engine.fontSize), weight: .medium))
                 .foregroundStyle(Color.white)
                 .lineSpacing(CGFloat(model.engine.fontSize) * 0.7)
+                .shadow(color: .black.opacity(0.95), radius: 4)
         case .draw(let text):
             wrappedText(text, width: width)
                 .font(.system(size: CGFloat(max(16, model.engine.fontSize - 10)), weight: .regular))
-                .foregroundStyle(Color(red: 1, green: 0.42, blue: 0).opacity(0.85))
+                .foregroundStyle(Color(red: 1, green: 0.42, blue: 0).opacity(0.9))
+                .shadow(color: .black.opacity(0.9), radius: 3)
         }
     }
 
@@ -109,23 +111,6 @@ struct OverlayView: View {
         .allowsHitTesting(false)
     }
 
-    private var topFade: some View {
-        VStack {
-            LinearGradient(colors: [Color.black.opacity(0.45), .clear], startPoint: .top, endPoint: .bottom)
-                .frame(height: 48)
-            Spacer()
-        }
-        .allowsHitTesting(false)
-    }
-
-    private var bottomFade: some View {
-        VStack {
-            Spacer()
-            LinearGradient(colors: [.clear, Color.black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
-                .frame(height: 56)
-        }
-        .allowsHitTesting(false)
-    }
 }
 
 private struct ContentHeightKey: PreferenceKey {
