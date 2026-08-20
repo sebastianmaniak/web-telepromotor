@@ -7,12 +7,12 @@ struct OverlayView: View {
 
     var body: some View {
         GeometryReader { geo in
+            let wrapWidth = max(80, geo.size.width - 40)
             ZStack {
                 Color.clear
-                textStack
+                textStack(width: wrapWidth)
+                    .frame(width: wrapWidth, alignment: .center)
                     .offset(y: -model.engine.scrollY)
-                    .padding(.horizontal, 20)
-                    .frame(width: geo.size.width, alignment: .center)
                     .gesture(drag)
                 topFade
                 bottomFade
@@ -30,11 +30,11 @@ struct OverlayView: View {
                 }
             }
             .onAppear {
-                model.engine.viewportWidth = geo.size.width
+                model.engine.viewportWidth = wrapWidth
                 model.engine.viewportHeight = geo.size.height
             }
             .onChange(of: geo.size) { _, size in
-                model.engine.viewportWidth = size.width
+                model.engine.viewportWidth = max(80, size.width - 40)
                 model.engine.viewportHeight = size.height
             }
         }
@@ -54,14 +54,15 @@ struct OverlayView: View {
             }
     }
 
-    private var textStack: some View {
+    private func textStack(width: CGFloat) -> some View {
         VStack(alignment: .center, spacing: 28) {
             Spacer().frame(height: model.engine.viewportHeight * 0.33)
             ForEach(Array(model.blocks.enumerated()), id: \.offset) { _, block in
-                blockView(block)
+                blockView(block, width: width)
             }
             Spacer().frame(height: model.engine.viewportHeight * 0.5)
         }
+        .frame(width: width)
         .background(
             GeometryReader { g in
                 Color.clear.preference(key: ContentHeightKey.self, value: g.size.height)
@@ -71,27 +72,30 @@ struct OverlayView: View {
     }
 
     @ViewBuilder
-    private func blockView(_ block: Block) -> some View {
+    private func blockView(_ block: Block, width: CGFloat) -> some View {
         switch block {
         case .segment(let title):
-            Text(title)
+            wrappedText(title, width: width)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.white.opacity(0.45))
-                .frame(maxWidth: .infinity)
         case .say(let text):
-            Text(text)
+            wrappedText(text, width: width)
                 .font(.system(size: CGFloat(model.engine.fontSize), weight: .medium))
                 .foregroundStyle(Color.white)
                 .lineSpacing(CGFloat(model.engine.fontSize) * 0.7)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
         case .draw(let text):
-            Text(text)
+            wrappedText(text, width: width)
                 .font(.system(size: CGFloat(max(16, model.engine.fontSize - 10)), weight: .regular))
                 .foregroundStyle(Color(red: 1, green: 0.42, blue: 0).opacity(0.85))
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
         }
+    }
+
+    private func wrappedText(_ text: String, width: CGFloat) -> some View {
+        Text(text)
+            .multilineTextAlignment(.center)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(width: width, alignment: .center)
     }
 
     private var guideLine: some View {
