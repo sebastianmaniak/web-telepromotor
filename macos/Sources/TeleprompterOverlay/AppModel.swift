@@ -26,6 +26,7 @@ final class AppModel: ObservableObject {
     private var overlay: OverlayWindowController?
     private var hotkeys: HotkeyCenter?
     private var link: DisplayLinkDriver?
+    private var lastFrame: Date?
     private var defaults: UserDefaults
     private var scriptsFolder: URL?
     private var bookmarkData: Data? {
@@ -123,9 +124,9 @@ final class AppModel: ObservableObject {
         if !overlayVisible {
             showOverlay()
         }
+        lastFrame = nil
         engine.play()
         noteInteraction()
-        link?.start()
         objectWillChange.send()
     }
 
@@ -165,9 +166,9 @@ final class AppModel: ObservableObject {
         let wasPlaying = engine.playing
         engine.restart()
         scrollY = 0
+        lastFrame = nil
         if wasPlaying {
             engine.play()
-            link?.start()
         }
         noteInteraction()
         objectWillChange.send()
@@ -223,6 +224,26 @@ final class AppModel: ObservableObject {
             }
         }
         noteInteraction()
+    }
+
+    func advanceFrame(at date: Date) {
+        guard engine.playing else {
+            lastFrame = date
+            return
+        }
+        let elapsed: TimeInterval
+        if let lastFrame {
+            elapsed = min(0.05, max(0, date.timeIntervalSince(lastFrame)))
+        } else {
+            elapsed = 1.0 / 60.0
+        }
+        lastFrame = date
+        engine.tick(elapsed: elapsed)
+        scrollY = engine.scrollY
+        if !engine.playing {
+            hudVisible = true
+            overlay?.setClickThrough(false)
+        }
     }
 
     func hideOverlay() {

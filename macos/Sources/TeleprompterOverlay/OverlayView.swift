@@ -6,36 +6,44 @@ struct OverlayView: View {
     @State private var lastDragHeight: CGFloat = 0
 
     var body: some View {
-        GeometryReader { geo in
-            let wrapWidth = max(80, geo.size.width - 40)
-            ZStack {
-                Color.clear
-                textStack(width: wrapWidth)
-                    .frame(width: wrapWidth, alignment: .center)
-                    .offset(y: -model.scrollY)
-                    .gesture(drag)
-                topFade
-                bottomFade
-                guideLine
-                RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
-                    .padding(1)
-                    .allowsHitTesting(false)
-                if model.hudVisible {
-                    VStack {
-                        Spacer()
-                        ControlHUD(model: model)
-                            .padding(.bottom, 8)
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !model.engine.playing)) { timeline in
+            GeometryReader { geo in
+                let wrapWidth = max(80, geo.size.width - 40)
+                ZStack {
+                    Color.clear
+                    textStack(width: wrapWidth)
+                        .frame(width: wrapWidth, alignment: .center)
+                        .offset(y: -model.scrollY)
+                        .gesture(drag)
+                    topFade
+                    bottomFade
+                    guideLine
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
+                        .padding(1)
+                        .allowsHitTesting(false)
+                    if model.hudVisible {
+                        VStack {
+                            Spacer()
+                            ControlHUD(model: model)
+                                .padding(.bottom, 8)
+                        }
                     }
                 }
-            }
-            .onAppear {
-                model.engine.viewportWidth = wrapWidth
-                model.engine.viewportHeight = geo.size.height
-            }
-            .onChange(of: geo.size) { _, size in
-                model.engine.viewportWidth = max(80, size.width - 40)
-                model.engine.viewportHeight = size.height
+                .onAppear {
+                    model.engine.viewportWidth = wrapWidth
+                    model.engine.viewportHeight = geo.size.height
+                    if model.engine.playing {
+                        model.advanceFrame(at: Date())
+                    }
+                }
+                .onChange(of: geo.size) { _, size in
+                    model.engine.viewportWidth = max(80, size.width - 40)
+                    model.engine.viewportHeight = size.height
+                }
+                .onChange(of: timeline.date) { _, date in
+                    model.advanceFrame(at: date)
+                }
             }
         }
         .ignoresSafeArea()

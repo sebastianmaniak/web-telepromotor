@@ -56,14 +56,19 @@ struct ScriptPickerView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     PlaybackControls(model: model)
                     HStack {
+                        Text("Text size")
+                        Button("A−") { model.setFontSize(model.engine.fontSize - 2) }
+                        Text("\(model.engine.fontSize)")
+                            .monospacedDigit()
+                        Button("A+") { model.setFontSize(model.engine.fontSize + 2) }
+                        Spacer()
                         Menu("Timer \(model.engine.timerDisplay)") {
                             Button("+30s") { model.adjustTimer(steps: 1) }
                             Button("−30s") { model.adjustTimer(steps: -1) }
                         }
-                        Spacer()
-                        if model.loadedScript != nil, !model.overlayVisible {
-                            Button("Show overlay") { model.showOverlay() }
-                        }
+                    }
+                    if model.loadedScript != nil, !model.overlayVisible {
+                        Button("Show overlay") { model.showOverlay() }
                     }
                 }
                 .padding(6)

@@ -8,12 +8,6 @@ struct ControlHUD: View {
         HStack(spacing: 10) {
             PlaybackControls(model: model, compact: true)
             Button("Restart") { model.restart() }
-            HStack(spacing: 6) {
-                Button("A−") { model.setFontSize(model.engine.fontSize - 2) }
-                Text("\(model.engine.fontSize)")
-                    .monospacedDigit()
-                Button("A+") { model.setFontSize(model.engine.fontSize + 2) }
-            }
             Text("\(Int((model.engine.progress * 100).rounded()))%")
                 .monospacedDigit()
             Text(model.engine.timerDisplay)

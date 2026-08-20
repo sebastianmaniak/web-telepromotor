@@ -16,11 +16,11 @@ struct PlaybackControls: View {
                     .disabled(model.loadedScript == nil)
             }
             Spacer(minLength: compact ? 4 : 8)
-            Button("−") { model.slower() }
-            Text("\(model.engine.speed) wpm")
+            Button("Slower") { model.slower() }
+            Text("Speed \(model.engine.speed)")
                 .monospacedDigit()
-                .frame(minWidth: compact ? 64 : 80)
-            Button("+") { model.faster() }
+                .frame(minWidth: compact ? 72 : 90)
+            Button("Faster") { model.faster() }
         }
         .controlSize(compact ? .regular : .large)
     }
